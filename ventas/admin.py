@@ -12,3 +12,4 @@ class ProductsAdmin(admin.ModelAdmin):
     list_editable = ['cost_price_usd',
                      'cost_price_mn', 'sale_price_mn', 'usd_rate',
                      'stock', 'active']
+    readonly_fields = ["cost_price_mn"]

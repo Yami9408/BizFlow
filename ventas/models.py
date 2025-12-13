@@ -20,7 +20,7 @@ class Products(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
-        null=False, blank=False,
+        # null=False, blank=False,
         verbose_name=_("Precio de costo MN")
     )
     sale_price_mn = models.DecimalField(
