@@ -31,6 +31,11 @@ def list_products(request):
     if max_price:
         products = products.filter(sale_price_mn__lte=max_price)
 
+    # Filtro por Stock
+    active_stock = request.GET.get('active_stock')
+    if active_stock:
+        products = products.filter(stock__gt=0)
+
     # Optimizar consulta
     products = products.only("id", "name", "image", "stock",
                              "description", "sale_price_mn").order_by('name')

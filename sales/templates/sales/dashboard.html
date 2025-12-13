@@ -26,19 +26,21 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ total_productos }}</h4>
-                        <p class="mb-0">Active Products</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-box fa-2x"></i>
+        <a href="{% url 'sales:products' %}?active_stock=true" class="text-decoration-none">
+            <div class="card bg-info text-white h-100 card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_productos }}</h4>
+                            <p class="mb-0">Active Products</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
