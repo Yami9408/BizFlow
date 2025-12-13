@@ -43,4 +43,4 @@ def list_products(request):
         'products': page_obj,
         'page_obj': page_obj,
     }
-    return render(request, 'sales/productos.html', context)
+    return render(request, 'sales/products.html', context)

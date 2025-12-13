@@ -113,7 +113,7 @@ BizFlow/
 │   ├── settings.py         # Configuración principal
 │   ├── urls.py            # URLs principales
 │   └── wsgi.py            # Configuración WSGI
-├── ventas/                 # Aplicación de ventas
+├── sales/                 # Aplicación de ventas
 │   ├── models.py          # Modelos de datos
 │   ├── views.py           # Vistas
 │   ├── admin.py           # Configuración admin
