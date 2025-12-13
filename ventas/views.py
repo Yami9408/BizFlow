@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core.paginator import Paginator
 from .models import Products
 
 
@@ -30,10 +31,17 @@ def list_products(request):
     if max_price:
         products = products.filter(sale_price_mn__lte=max_price)
 
-    products = products.only("id", "name", "image", "stock", 
-                             "description", "sale_price_mn")
+    # Optimizar consulta
+    products = products.only("id", "name", "image", "stock",
+                             "description", "sale_price_mn").order_by('name')
+
+    # Paginación
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'products': products,
+        'products': page_obj,
+        'page_obj': page_obj,
     }
     return render(request, 'ventas/productos.html', context)
