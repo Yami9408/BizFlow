@@ -33,8 +33,8 @@
                                     <td>{{ cliente.telefono|default:"-" }}</td>
                                     <td>{{ cliente.fecha_registro|date:"d/m/Y" }}</td>
                                     <td>
-                                        <span class="badge bg-{% if cliente.activo %}success{% else %}danger{% endif %}">
-                                            {% if cliente.activo %}Activo{% else %}Inactivo{% endif %}
+                                        <span class="badge bg-{% if cliente.active %}success{% else %}danger{% endif %}">
+                                            {% if cliente.active %}Activo{% else %}Inactivo{% endif %}
                                         </span>
                                     </td>
                                 </tr>

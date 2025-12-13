@@ -1,90 +1,77 @@
+from datetime import datetime, timezone
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.utils.translation import gettext as _
 
 
-class Cliente(models.Model):
-    nombre = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    telefono = models.CharField(max_length=20, blank=True)
-    direccion = models.TextField(blank=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    activo = models.BooleanField(default=True)
+class Products(models.Model):
+    name = models.CharField(max_length=100, verbose_name=_("Nombre"))
+    description = models.TextField(blank=True, verbose_name=_("Descripción"))
+    cost_price_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        null=False, blank=False,
+        verbose_name=_("Precio de costo USD")
+    )
+    cost_price_mn = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        null=False, blank=False,
+        verbose_name=_("Precio de costo MN")
+    )
+    sale_price_mn = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=False, blank=False,
+        verbose_name=_("Precio de venta MN")
+    )
+    usd_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        help_text="Tipo de cambio USD → moneda local para este producto",
+        null=False, blank=False,
+        default=500,
+        verbose_name=_("Tipo de cambio USD")
+    )
 
-    def __str__(self):
-        return self.nombre
+    stock = models.PositiveIntegerField(default=0, verbose_name=_("Stock"))
+    image = models.ImageField(
+        upload_to='products/', blank=True, null=True,
+        verbose_name=_("Imagen")
+    )
+    active = models.BooleanField(default=True, verbose_name=_("Activo"))
+    create_At = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Fecha de creación")
+    )
+    sales_history = models.JSONField(
+        default=list, blank=True,
+        verbose_name=_("Historial de ventas")
+    )
 
     class Meta:
-        verbose_name_plural = "Clientes"
-
-
-class Categoria(models.Model):
-    nombre = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(blank=True)
+        verbose_name = _('Product')
+        verbose_name_plural = _('Products')
 
     def __str__(self):
-        return self.nombre
+        return self.name
 
-    class Meta:
-        verbose_name_plural = "Categorías"
-
-
-class Producto(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField(blank=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    precio = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    stock = models.PositiveIntegerField(default=0)
-    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
-    activo = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.nombre
-
-
-class Venta(models.Model):
-    ESTADO_CHOICES = [
-        ('pendiente', 'Pendiente'),
-        ('completada', 'Completada'),
-        ('cancelada', 'Cancelada'),
-    ]
-
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    vendedor = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
-    notas = models.TextField(blank=True)
-
-    def __str__(self):
-        return f"Venta #{self.id} - {self.cliente.nombre}"
-
-    def calcular_total(self):
-        total = sum(item.subtotal for item in self.detalleventa_set.all())
-        self.total = total
+    def add_sale(self, quantity):
+        if self.stock < quantity:
+            raise ValueError("No hay suficiente stock")
+        self.stock -= quantity
+        # agregar al historial
+        self.sales_history.append({
+            "date": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            "quantity": quantity
+        })
+        print(f"Quedan en stock {self.name}: {self.stock}")
         self.save()
-        return total
-
-    class Meta:
-        verbose_name_plural = "Ventas"
-
-
-class DetalleVenta(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
 
     def save(self, *args, **kwargs):
-        self.subtotal = self.cantidad * self.precio_unitario
+        self.cost_price_mn = self.cost_price_usd * self.usd_rate
         super().save(*args, **kwargs)
-        self.venta.calcular_total()
-
-    def __str__(self):
-        return f"{self.producto.nombre} x {self.cantidad}"
-
-    class Meta:
-        verbose_name_plural = "Detalles de Venta"
