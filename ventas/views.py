@@ -15,6 +15,24 @@ def dashboard(request):
 def list_products(request):
     products = Products.objects.filter(active=True)
 
+    # Filtro por búsqueda de nombre
+    search = request.GET.get('search')
+    if search:
+        products = products.filter(name__icontains=search)
+
+    # Filtro por precio mínimo
+    min_price = request.GET.get('min_price')
+    if min_price:
+        products = products.filter(sale_price_mn__gte=min_price)
+
+    # Filtro por precio máximo
+    max_price = request.GET.get('max_price')
+    if max_price:
+        products = products.filter(sale_price_mn__lte=max_price)
+
+    products = products.only("id", "name", "image", "stock", 
+                             "description", "sale_price_mn")
+
     context = {
         'products': products,
     }
