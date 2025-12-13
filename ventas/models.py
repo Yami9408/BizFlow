@@ -7,7 +7,9 @@ from django.utils.translation import gettext as _
 
 
 class Products(models.Model):
-    name = models.CharField(max_length=100, verbose_name=_("Nombre"))
+    name = models.CharField(
+        max_length=100,
+        verbose_name=_("Nombre"), db_index=True)
     description = models.TextField(blank=True, verbose_name=_("Descripción"))
     cost_price_usd = models.DecimalField(
         max_digits=10,
@@ -27,7 +29,8 @@ class Products(models.Model):
         max_digits=10,
         decimal_places=2,
         null=False, blank=False,
-        verbose_name=_("Precio de venta MN")
+        verbose_name=_("Precio de venta MN"),
+        db_index=True
     )
     usd_rate = models.DecimalField(
         max_digits=10,
@@ -43,7 +46,9 @@ class Products(models.Model):
         upload_to='products/', blank=True, null=True,
         verbose_name=_("Imagen")
     )
-    active = models.BooleanField(default=True, verbose_name=_("Activo"))
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Activo"), db_index=True)
     create_At = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Fecha de creación")
