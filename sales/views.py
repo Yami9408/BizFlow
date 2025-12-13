@@ -6,7 +6,8 @@ from .models import Products
 def dashboard(request):
     context = {
         'total_ventas':  0,
-        'total_productos': Products.objects.filter(active=True).count(),
+        'total_productos': Products.objects.filter(
+            active=True, stock__gt=0).count(),
         'ventas_recientes': 0
     }
     return render(request, 'sales/dashboard.html', context)

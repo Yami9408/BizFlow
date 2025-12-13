@@ -41,7 +41,9 @@ class Products(models.Model):
         verbose_name=_("Tipo de cambio USD")
     )
 
-    stock = models.PositiveIntegerField(default=0, verbose_name=_("Stock"))
+    stock = models.PositiveIntegerField(
+        default=0, verbose_name=_("Stock"),
+        db_index=True)
     image = models.ImageField(
         upload_to='products/', blank=True, null=True,
         verbose_name=_("Imagen")
