@@ -6,11 +6,10 @@ from .models import Products
 def dashboard(request):
     context = {
         'total_ventas':  0,
-        'total_clientes': 0,
         'total_productos': Products.objects.filter(active=True).count(),
         'ventas_recientes': 0
     }
-    return render(request, 'ventas/dashboard.html', context)
+    return render(request, 'sales/dashboard.html', context)
 
 
 def list_products(request):
@@ -44,4 +43,4 @@ def list_products(request):
         'products': page_obj,
         'page_obj': page_obj,
     }
-    return render(request, 'ventas/productos.html', context)
+    return render(request, 'sales/productos.html', context)

@@ -1,71 +1,38 @@
-{% extends 'ventas/base.html' %}
+{% extends 'sales/base.html' %}
 
-{% block title %}Dashboard - BizFlow{% endblock %}
+{% block title %}Ventas - BizFlow{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">Dashboard</h1>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>${{ total_ventas|floatformat:2 }}</h4>
-                        <p class="mb-0">Total Ventas</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-dollar-sign fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ total_productos }}</h4>
-                        <p class="mb-0">Productos</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-box fa-2x"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <h1 class="mb-4">Ventas</h1>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Ventas Recientes</h5>
-            </div>
             <div class="card-body">
-                {% if ventas_recientes %}
+                {% if ventas %}
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Cliente</th>
+                                    <th>Vendedor</th>
                                     <th>Fecha</th>
                                     <th>Total</th>
                                     <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for venta in ventas_recientes %}
+                                {% for venta in ventas %}
                                 <tr>
                                     <td>{{ venta.id }}</td>
                                     <td>{{ venta.cliente.nombre }}</td>
+                                    <td>{{ venta.vendedor.username }}</td>
                                     <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
                                     <td>${{ venta.total|floatformat:2 }}</td>
                                     <td>
@@ -73,13 +40,20 @@
                                             {{ venta.get_estado_display }}
                                         </span>
                                     </td>
+                                    <td>
+                                        <a href="{% url 'ventas:detalle_venta' venta.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">No hay ventas registradas.</p>
+                    <div class="alert alert-info">
+                        No hay ventas registradas.
+                    </div>
                 {% endif %}
             </div>
         </div>

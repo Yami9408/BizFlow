@@ -1,4 +1,4 @@
-{% extends 'ventas/base.html' %}
+{% extends 'sales/base.html' %}
 
 {% block title %}Detalle Venta #{{ venta.id }} - BizFlow{% endblock %}
 
@@ -7,7 +7,7 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Detalle Venta #{{ venta.id }}</h1>
-            <a href="{% url 'ventas:ventas' %}" class="btn btn-secondary">
+            <a href="{% url 'sales:ventas' %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
         </div>
