@@ -13,9 +13,9 @@ def dashboard(request):
 
 
 def list_products(request):
-    productos = Products.objects.filter(active=True)
+    products = Products.objects.filter(active=True)
 
     context = {
-        'productos': productos,
+        'products': products,
     }
     return render(request, 'ventas/productos.html', context)
