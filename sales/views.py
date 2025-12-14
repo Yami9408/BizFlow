@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
-from .models import Products
+from .models import Products, Debts
 
 
 def dashboard(request):
@@ -8,7 +8,9 @@ def dashboard(request):
         'total_ventas':  0,
         'total_productos': Products.objects.filter(
             active=True, stock__gt=0).count(),
-        'ventas_recientes': 0
+        'total_debts': Debts.objects.filter(
+            status="pending"
+        ).count()
     }
     return render(request, 'sales/dashboard.html', context)
 
@@ -50,3 +52,14 @@ def list_products(request):
         'page_obj': page_obj,
     }
     return render(request, 'sales/products.html', context)
+
+
+def list_debts(request):
+    debts = Debts.objects.filter()
+    search = request.GET.get('search')
+    if search:
+        debts = debts.filter(client_name__icontains=search)
+    context = {
+        'debts': debts
+    }
+    return render(request, 'sales/debts.html', context)

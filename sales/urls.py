@@ -6,4 +6,6 @@ app_name = 'sales'
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('products/', views.list_products, name='products'),
+    path('debts/', views.list_debts, name='debts'),
+
 ]

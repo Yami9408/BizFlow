@@ -1,0 +1,120 @@
+{% extends 'sales/base.html' %}
+
+{% block title %}Debts - BizFlow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Debts</h1>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Buscar por nombre..." 
+                       value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for debt in debts %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ debt.client_name }}</h5>
+                    <p class="card-text">{{ debt.description|truncatewords:15 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="h5 text-primary">${{ debt.total_amount }}</span>
+                        <span class="badge bg-{% if debt.status == 'paid' %}success{% elif debt.status == 'overdue' %}danger{% else %}warning{% endif %}">{{ debt.get_status_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Pendiente: ${{ debt.pending_amount }}</small>
+                        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#debt-{{ debt.id }}" aria-expanded="false">
+                            Ver productos
+                        </button>
+                    </div>
+                    <div class="collapse mt-3" id="debt-{{ debt.id }}">
+                        <div class="card card-body">
+                            <h6>Productos:</h6>
+                            {% for item in debt.product_items.all %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                                    <div>
+                                        <strong>{{ item.product.name }}</strong><br>
+                                        <small class="text-muted">Cantidad: {{ item.quantity }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div>${{ item.unit_price }} c/u</div>
+                                        <strong>${{ item.subtotal }}</strong>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted mb-0">No hay productos asociados</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No hay Deudas.
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+{% if page_obj.has_other_pages %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Paginación de productos">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                            Anterior
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ num }}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ page_obj.next_page_number }}">
+                            Siguiente
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <p class="text-center text-muted">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} 
+            ({{ page_obj.paginator.count }} productos total)
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
