@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Products, Debt
+from .models import Products, Debts
 
 
 @admin.register(Products)
@@ -15,8 +15,8 @@ class ProductsAdmin(admin.ModelAdmin):
     readonly_fields = ["cost_price_mn"]
 
 
-@admin.register(Debt)
-class DebtAdmin(admin.ModelAdmin):
+@admin.register(Debts)
+class DebtsAdmin(admin.ModelAdmin):
     list_display = ['client_name', 'product', 'quantity',
                     'total_amount', 'paid_amount', 'due_date',
                     'status', 'description', 'created_at', 'notes', 'pay_date']

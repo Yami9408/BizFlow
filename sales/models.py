@@ -84,7 +84,7 @@ class Products(models.Model):
         super().save(*args, **kwargs)
 
 
-class Debt(models.Model):
+class Debts(models.Model):
     STATUS_CHOICES = [
         ('pending', _('Pendiente')),
         ('paid', _('Pagada')),
