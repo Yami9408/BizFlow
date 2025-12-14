@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.translation import gettext as _
 from .models import Products, Debts, DebtItem
 
 
@@ -28,8 +29,24 @@ class DebtsAdmin(admin.ModelAdmin):
     list_filter = ['client_name', 'status', 'created_at']
     search_fields = ['client_name', 'description']
 
+    actions = [
+        'page_debts'
+    ]
+
+    def page_debts(self, request, queryset):
+        """Admin action to enter coordinators section"""
+        for debt in queryset:
+            debt.pay()
+
+        self.message_user(
+            request,
+            "Las deudas han sido pagadas",
+            level=messages.SUCCESS
+        )
+
+    page_debts.short_description = _('Pagar la Deuda')
+
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         # Calcular total después de guardar todos los DebtItems
         form.instance.calculate_total()
-        # form.instance.save()

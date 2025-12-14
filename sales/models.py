@@ -118,7 +118,8 @@ class Debts(models.Model):
     )
     due_date = models.DateField(
         verbose_name=_("Fecha de vencimiento"),
-        null=True, blank=True)
+        null=True, blank=True
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -145,7 +146,9 @@ class Debts(models.Model):
     def pending_amount(self):
         return self.total_amount - self.paid_amount
 
-    def pay(self, amount):
+    def pay(self, amount=None):
+        if not amount:
+            amount = self.pending_amount
         if amount <= 0:
             raise ValueError("El monto debe ser mayor a 0")
         if amount > self.pending_amount:
