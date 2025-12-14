@@ -59,6 +59,9 @@ def list_debts(request):
     search = request.GET.get('search')
     if search:
         debts = debts.filter(client_name__icontains=search)
+    status = request.GET.get('status')
+    if status:
+        debts = debts.filter(status=status)
     context = {
         'debts': debts
     }

@@ -17,6 +17,14 @@
                        placeholder="Buscar por nombre..." 
                        value="{{ request.GET.search }}">
             </div>
+            <div class="col-md-3"> 
+                <select name="status" class="form-select">
+                    <option value="">Todas las deudas</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pendientes</option>
+                    <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Pagadas</option>
+                    <option value="overdue" {% if request.GET.status == 'overdue' %}selected{% endif %}>Vencidas</option>
+                </select>
+            </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100">Filtrar</button>
             </div>
@@ -80,7 +88,7 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}">
                             Anterior
                         </a>
                     </li>
@@ -93,7 +101,7 @@
                         </li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <li class="page-item">
-                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ num }}">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ num }}">
                                 {{ num }}
                             </a>
                         </li>
@@ -102,7 +110,7 @@
                 
                 {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.min_price %}min_price={{ request.GET.min_price }}&{% endif %}{% if request.GET.max_price %}max_price={{ request.GET.max_price }}&{% endif %}page={{ page_obj.next_page_number }}">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}">
                             Siguiente
                         </a>
                     </li>
@@ -112,7 +120,7 @@
         
         <p class="text-center text-muted">
             Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} 
-            ({{ page_obj.paginator.count }} productos total)
+            ({{ page_obj.paginator.count }} deudas total)
         </p>
     </div>
 </div>
