@@ -4,6 +4,15 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from django.utils.translation import gettext as _
+STATUS_PENDING = 'pending'
+STATUS_PAID = 'paid'
+STATUS_OVERDUE = 'overdue'
+
+STATUS_CHOICES = [
+    (STATUS_PENDING, _('Pendiente')),
+    (STATUS_PAID, _('Pagada')),
+    (STATUS_OVERDUE, _('Vencida')),
+]
 
 
 class Products(models.Model):
@@ -51,7 +60,7 @@ class Products(models.Model):
     active = models.BooleanField(
         default=True,
         verbose_name=_("Activo"), db_index=True)
-    create_At = models.DateTimeField(
+    created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name=_("Fecha de creación")
     )
@@ -85,31 +94,17 @@ class Products(models.Model):
 
 
 class Debts(models.Model):
-    STATUS_CHOICES = [
-        ('pending', _('Pendiente')),
-        ('paid', _('Pagada')),
-        ('overdue', _('Vencida')),
-    ]
-
     client_name = models.CharField(
         max_length=100,
-        null=False, blank=False,
-        verbose_name=_("Nombre del cliente"))
-
-    product = models.ForeignKey(
-        Products,
-        on_delete=models.CASCADE,
-        verbose_name=_("Producto")
-    )
-    quantity = models.PositiveIntegerField(
-        default=1,
-        verbose_name=_("Cantidad")
+        verbose_name=_("Nombre del cliente")
     )
     total_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))],
-        verbose_name=_("Monto total")
+        default=0.00,
+        # validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name=_("Monto total"),
+        blank=True, null=True
     )
     paid_amount = models.DecimalField(
         max_digits=10,
@@ -119,19 +114,24 @@ class Debts(models.Model):
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name=_("Fecha de creación"))
-    due_date = models.DateField(verbose_name=_("Fecha de vencimiento"))
+        verbose_name=_("Fecha de creación")
+    )
+    due_date = models.DateField(
+        verbose_name=_("Fecha de vencimiento"),
+        null=True, blank=True)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='pending',
-        verbose_name=_("Estado")
+        default=STATUS_PENDING,
+        verbose_name=_("Estado"),
+        db_index=True
     )
     description = models.TextField(blank=True, verbose_name=_("Descripción"))
     notes = models.TextField(blank=True, verbose_name=_("Notas"))
     pay_date = models.DateTimeField(
         null=True, blank=True,
-        verbose_name=_("Fecha de pago"))
+        verbose_name=_("Fecha de pago")
+    )
 
     class Meta:
         verbose_name = _("Debt")
@@ -139,7 +139,7 @@ class Debts(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.customer.name} - ${self.pending_amount}"
+        return f"{self.client_name} - ${self.pending_amount}"
 
     @property
     def pending_amount(self):
@@ -156,3 +156,50 @@ class Debts(models.Model):
             self.status = 'paid'
             self.pay_date = datetime.now(timezone.utc)
         self.save()
+
+    def calculate_total(self):
+        total = sum(item.subtotal for item in self.product_items.all())
+        self.total_amount = total
+        self.save()
+
+
+class DebtItem(models.Model):
+    debt = models.ForeignKey(
+        Debts,
+        on_delete=models.CASCADE,
+        related_name='product_items',
+        verbose_name=_("Deuda")
+    )
+    product = models.ForeignKey(
+        Products,
+        on_delete=models.CASCADE,
+        verbose_name=_("Producto")
+    )
+    quantity = models.PositiveIntegerField(
+        default=1, verbose_name=_("Cantidad")
+    )
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Precio unitario"),
+        blank=True
+    )
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Subtotal"),
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _("Debt Product")
+        verbose_name_plural = _("Debt Products")
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity}"
+
+    def save(self, *args, **kwargs):
+        if not self.unit_price:
+            self.unit_price = self.product.sale_price_mn
+        self.subtotal = self.unit_price * self.quantity
+        super().save(*args, **kwargs)
