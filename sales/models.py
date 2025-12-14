@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from django.db import models
 # from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils.translation import gettext as _
 STATUS_PENDING = 'pending'
@@ -154,6 +155,10 @@ class Debts(models.Model):
         return self.total_amount - self.paid_amount
 
     def pay(self, amount=None):
+        if self.status == STATUS_PAID:
+            print("La deuda ya está pagada")
+            return
+
         if not amount:
             amount = self.pending_amount
         if amount <= 0:
@@ -163,9 +168,14 @@ class Debts(models.Model):
 
         self.paid_amount += Decimal(str(amount))
         if self.paid_amount >= self.total_amount:
-            self.status = 'paid'
+            self.status = STATUS_PAID
             self.pay_date = datetime.now(timezone.utc)
         self.save()
+
+    def get_total_to_paid(self):
+        total = sum(item.product.profit * item.quantity
+                    for item in self.product_items.all())
+        return total * Decimal('0.3')
 
     def calculate_total(self):
         total = sum(item.subtotal for item in self.product_items.all())
@@ -208,8 +218,44 @@ class DebtItem(models.Model):
     def __str__(self):
         return f"{self.product.name} x{self.quantity}"
 
+    def clean(self):
+        if self.product.stock < self.quantity:
+            raise ValidationError({
+                'quantity': ('Stock insuficiente. '
+                             f'Disponible: {self.product.stock}')
+            })
+
     def save(self, *args, **kwargs):
+        if not self.pk:
+            # Si es una nueva instancia, reducir stock
+            self.product.add_sale(self.quantity)
+        else:
+            # Si se está editando, obtener la instancia anterior
+            old_instance = DebtItem.objects.get(pk=self.pk)
+
+            # Restaurar stock del producto anterior si cambió
+            if old_instance.product != self.product:
+                self.product.add_sale(self.quantity)
+            elif old_instance.quantity != self.quantity:
+                # Si cambió la cantidad del mismo producto
+                quantity_diff = self.quantity - old_instance.quantity
+                if quantity_diff > 0:
+                    # Aumentó la cantidad, reducir más stock
+                    self.product.add_sale(quantity_diff)
+                else:
+                    # Disminuyó la cantidad, restaurar stock
+                    self.product.stock += abs(quantity_diff)
+                    self.product.save()
+
+        # Recalcular precios
         if not self.unit_price:
             self.unit_price = self.product.sale_price_mn
         self.subtotal = self.unit_price * self.quantity
+
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Restaurar stock al eliminar el item
+        self.product.stock += self.quantity
+        self.product.save()
+        super().delete(*args, **kwargs)

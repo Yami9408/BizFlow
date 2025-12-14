@@ -35,12 +35,14 @@ class DebtsAdmin(admin.ModelAdmin):
 
     def page_debts(self, request, queryset):
         """Admin action to enter coordinators section"""
+        get_total_to_paid = 0
         for debt in queryset:
+            get_total_to_paid += debt.get_total_to_paid()
             debt.pay()
 
         self.message_user(
             request,
-            "Las deudas han sido pagadas",
+            f"Las deudas han sido pagadas: {get_total_to_paid} ha pagar",
             level=messages.SUCCESS
         )
 
