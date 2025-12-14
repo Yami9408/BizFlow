@@ -68,6 +68,12 @@ class Products(models.Model):
         default=list, blank=True,
         verbose_name=_("Historial de ventas")
     )
+    profit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=False, blank=True,
+        verbose_name=_("Ganancia"),
+    )
 
     class Meta:
         verbose_name = _('Product')
@@ -90,6 +96,7 @@ class Products(models.Model):
 
     def save(self, *args, **kwargs):
         self.cost_price_mn = self.cost_price_usd * self.usd_rate
+        self.profit = self.sale_price_mn - self.cost_price_mn
         super().save(*args, **kwargs)
 
 
