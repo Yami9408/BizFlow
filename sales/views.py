@@ -1,3 +1,4 @@
+from datetime import datetime, time
 from django.db.models import Sum
 from django.shortcuts import render
 from .models import Products, Debts, Sales
@@ -75,12 +76,15 @@ def list_sales(request):
     # Filtro por fecha desde
     date_from = request.GET.get('date_from')
     if date_from:
-        sales = sales.filter(created_at__date__gte=date_from)
+        date_from = datetime.strptime(date_from, "%Y-%m-%d")
+        sales = sales.filter(created_at__gte=date_from)
 
     # Filtro por fecha hasta
     date_to = request.GET.get('date_to')
     if date_to:
-        sales = sales.filter(created_at__date__lte=date_to)
+        date_to = datetime.strptime(date_to, "%Y-%m-%d")
+        date_to = datetime.combine(date_to.date(), time.max)
+        sales = sales.filter(created_at__lte=date_to)
 
     context = get_paginator(request, sales, "sales", page_size=12)
     return render(request, 'sales/sales.html', context)
