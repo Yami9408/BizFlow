@@ -5,10 +5,17 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">Debts</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">💳  Debts</h1>
+            <a href="/admin/sales/debts/add/" 
+               class="btn btn-success" 
+               target="_blank"
+               title="Create New Debt">
+                <i class="fas fa-plus me-2"></i>New Debt
+            </a>
+        </div>
     </div>
 </div>
-
 <div class="row mb-3">
     <div class="col-12">
         <form method="get" class="row g-3">
