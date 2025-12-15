@@ -1,6 +1,9 @@
 from django.contrib import admin, messages
 from django.utils.translation import gettext as _
-from .models import Products, Debts, DebtItem
+from .models import (
+    Products, Debts, DebtItem,
+    Sales, SalesItem
+)
 
 
 @admin.register(Products)
@@ -52,3 +55,25 @@ class DebtsAdmin(admin.ModelAdmin):
         super().save_related(request, form, formsets, change)
         # Calcular total después de guardar todos los DebtItems
         form.instance.calculate_total()
+
+
+class SalesItemInline(admin.TabularInline):
+    model = SalesItem
+    extra = 0
+
+
+@admin.register(Sales)
+class SalesAdmin(admin.ModelAdmin):
+    inlines = [SalesItemInline]
+    list_display = ['total_amount', 'created_at', 'notes', 'card_amount',
+                    'employee_payment', 'employee_percent',
+                    'total_profit']
+    list_filter = ['created_at']
+    search_fields = ['notes']
+    
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        form.instance.set_employee_total()
+        form.instance.set_total_amount()
+        form.instance.save()
+        

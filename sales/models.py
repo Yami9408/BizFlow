@@ -5,6 +5,8 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils.translation import gettext as _
+from .utils import update_stock
+
 STATUS_PENDING = 'pending'
 STATUS_PAID = 'paid'
 STATUS_OVERDUE = 'overdue'
@@ -172,10 +174,10 @@ class Debts(models.Model):
             self.pay_date = datetime.now(timezone.utc)
         self.save()
 
-    def get_total_to_paid(self):
+    def get_total_to_paid(self, percent='0.22'):
         total = sum(item.product.profit * item.quantity
                     for item in self.product_items.all())
-        return total * Decimal('0.3')
+        return total * Decimal(percent)
 
     def calculate_total(self):
         total = sum(item.subtotal for item in self.product_items.all())
@@ -226,27 +228,138 @@ class DebtItem(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            # Si es una nueva instancia, reducir stock
-            self.product.add_sale(self.quantity)
-        else:
-            # Si se está editando, obtener la instancia anterior
-            old_instance = DebtItem.objects.get(pk=self.pk)
+        update_stock(self, DebtItem)
+        # Recalcular precios
+        if not self.unit_price:
+            self.unit_price = self.product.sale_price_mn
+        self.subtotal = self.unit_price * self.quantity
 
-            # Restaurar stock del producto anterior si cambió
-            if old_instance.product != self.product:
-                self.product.add_sale(self.quantity)
-            elif old_instance.quantity != self.quantity:
-                # Si cambió la cantidad del mismo producto
-                quantity_diff = self.quantity - old_instance.quantity
-                if quantity_diff > 0:
-                    # Aumentó la cantidad, reducir más stock
-                    self.product.add_sale(quantity_diff)
-                else:
-                    # Disminuyó la cantidad, restaurar stock
-                    self.product.stock += abs(quantity_diff)
-                    self.product.save()
+        super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        # Restaurar stock al eliminar el item
+        self.product.stock += self.quantity
+        self.product.save()
+        super().delete(*args, **kwargs)
+
+
+class Sales(models.Model):
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        # validators=[MinValueValidator(Decimal('0.01'))],
+        verbose_name=_("Monto total"),
+        blank=True, null=True
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Fecha de creación")
+    )
+    notes = models.TextField(blank=True, verbose_name=_("Notas"))
+    card_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Monto en Tarjeta"),
+        blank=True, null=True
+    )
+    employee_payment = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Monto del Trabajador"),
+        blank=True, null=True
+    )
+    employee_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.22,
+        verbose_name=_("Porciento del Trabajador")
+    )
+    total_profit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Mi ganancia"),
+        blank=True, null=True
+    )
+
+    @property
+    def my_profit(self):
+        return self.total_profit - self.employee_payment
+
+    class Meta:
+        verbose_name = _("Sale")
+        verbose_name_plural = _("Sales")
+        ordering = ['-created_at']
+
+    def __str__(self):
+        date = self.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        return f"Venta del {date}"
+
+    def set_total_profit(self):
+        total = sum(item.product.profit * item.quantity
+                    for item in self.product_items.all())
+        self.total_profit = total
+        return total
+
+    def set_total_amount(self):
+        total = sum(item.product.sale_price_mn * item.quantity
+                    for item in self.product_items.all())
+        self.total_amount = total
+        return total
+
+    def set_employee_total(self):
+        total = self.total_profit or self.set_total_profit()
+        self.employee_payment = total * Decimal(self.employee_percent)
+        return self.employee_payment
+
+
+class SalesItem(models.Model):
+    sales = models.ForeignKey(
+        Sales,
+        on_delete=models.CASCADE,
+        related_name='product_items',
+        verbose_name=_("Deuda")
+    )
+    product = models.ForeignKey(
+        Products,
+        on_delete=models.CASCADE,
+        verbose_name=_("Producto")
+    )
+    quantity = models.PositiveIntegerField(
+        default=1, verbose_name=_("Cantidad")
+    )
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Precio unitario"),
+        blank=True
+    )
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Subtotal"),
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _("Sale Product")
+        verbose_name_plural = _("Sales Products")
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity}"
+
+    def clean(self):
+        if self.product.stock < self.quantity:
+            raise ValidationError({
+                'quantity': ('Stock insuficiente. '
+                             f'Disponible: {self.product.stock}')
+            })
+
+    def save(self, *args, **kwargs):
+        update_stock(self, DebtItem)
         # Recalcular precios
         if not self.unit_price:
             self.unit_price = self.product.sale_price_mn
