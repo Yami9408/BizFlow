@@ -5,7 +5,15 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">Productos</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">📦 Productos</h1>
+            <a href="/admin/sales/products/add/" 
+               class="btn btn-success" 
+               target="_blank"
+               title="Crear nuevo producto">
+                <i class="fas fa-plus me-2"></i>Nuevo Producto
+            </a>
+        </div>
     </div>
 </div>
 
@@ -46,7 +54,15 @@
                     </div>
                 {% endif %}
                 <div class="card-body">
-                    <h5 class="card-title">{{ product.name }}</h5>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ product.name }}</h5>
+                        <a href="/admin/sales/products/{{ product.id }}/change/" 
+                           class="btn btn-outline-primary btn-sm" 
+                           title="Editar producto"
+                           target="_blank">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
                     <p class="card-text">{{ product.description|truncatewords:15 }}</p>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="h5 text-primary">${{ product.sale_price_mn }}</span>
