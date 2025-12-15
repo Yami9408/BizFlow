@@ -5,21 +5,24 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">Dashboard</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">📊 Dashboard</h1>
+            <small class="text-muted">Resumen general del negocio</small>
+        </div>
     </div>
 </div>
 
-<div class="row mb-4">
+<div class="row mb-4 g-3">
     <div class="col-md-3">
-        <div class="card bg-primary text-white">
+        <div class="card bg-gradient-primary text-white shadow-sm border-0">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4>${{ total_ventas|floatformat:2 }}</h4>
-                        <p class="mb-0">Total Sales</p>
+                        <h3 class="fw-bold">${{ total_ventas|floatformat:2 }}</h3>
+                        <p class="mb-0">💰 Total Sales</p>
                     </div>
                     <div class="align-self-center">
-                        <i class="fas fa-dollar-sign fa-2x"></i>
+                        <i class="fas fa-chart-line fa-2x"></i>
                     </div>
                 </div>
             </div>
@@ -27,29 +30,29 @@
     </div>
     <div class="col-md-3">
         <a href="{% url 'sales:products' %}?active_stock=true" class="text-decoration-none">
-            <div class="card bg-info text-white h-100 card-hover">
+            <div class="card bg-gradient-info text-white shadow-sm border-0 h-100 card-hover">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4>{{ total_productos }}</h4>
-                            <p class="mb-0">Active Products</p>
+                            <h3 class="fw-bold">{{ total_productos }}</h3>
+                            <p class="mb-0">📦 Active Products</p>
                         </div>
                         <div class="align-self-center">
-                            <i class="fas fa-box fa-2x"></i>
+                            <i class="fas fa-boxes fa-2x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </a>
     </div>
-     <div class="col-md-3">
+    <div class="col-md-3">
         <a href="{% url 'sales:debts' %}" class="text-decoration-none">
-            <div class="card bg-danger text-white h-100 card-hover">
+            <div class="card bg-gradient-warning text-white shadow-sm border-0 h-100 card-hover">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4>{{ total_debts }}</h4>
-                            <p class="mb-0">Total Debts</p>
+                            <h3 class="fw-bold">{{ total_debts }}</h3>
+                            <p class="mb-0">💳 Total Debts</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-file-invoice-dollar fa-2x"></i>
@@ -59,36 +62,63 @@
             </div>
         </a>
     </div>
+    <div class="col-md-3">
+        <a href="{% url 'sales:debts' %}?status=pending" class="text-decoration-none">
+            <div class="card bg-gradient-success text-white shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">{{ pending_debts|default:"0" }}</h3>
+                            <p class="mb-0">⏳ Pending Debts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Ventas Recientes</h5>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📈 Ventas Recientes</h5>
+                    <small class="text-muted">Últimas transacciones</small>
+                </div>
             </div>
             <div class="card-body">
                 {% if ventas_recientes %}
                     <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Cliente</th>
-                                    <th>Fecha</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
+                                    <th class="border-0">#</th>
+                                    <th class="border-0">Cliente</th>
+                                    <th class="border-0">Fecha</th>
+                                    <th class="border-0">Total</th>
+                                    <th class="border-0">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for venta in ventas_recientes %}
                                 <tr>
-                                    <td>{{ venta.id }}</td>
-                                    <td>{{ venta.cliente.nombre }}</td>
-                                    <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-                                    <td>${{ venta.total|floatformat:2 }}</td>
+                                    <td><span class="badge bg-light text-dark">#{{ venta.id }}</span></td>
                                     <td>
-                                        <span class="badge bg-{% if venta.estado == 'completada' %}success{% elif venta.estado == 'pendiente' %}warning{% else %}danger{% endif %}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                            <strong>{{ venta.cliente.nombre }}</strong>
+                                        </div>
+                                    </td>
+                                    <td><small class="text-muted">{{ venta.fecha|date:"d/m/Y H:i" }}</small></td>
+                                    <td><span class="fw-bold text-success">${{ venta.total|floatformat:2 }}</span></td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-{% if venta.estado == 'completada' %}success{% elif venta.estado == 'pendiente' %}warning{% else %}danger{% endif %}">
                                             {{ venta.get_estado_display }}
                                         </span>
                                     </td>
@@ -98,8 +128,50 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">No hay ventas registradas.</p>
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay ventas registradas aún</p>
+                    </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white border-0 pb-0">
+                <h6 class="mb-0">🎯 Resumen Rápido</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Productos activos</span>
+                    <span class="fw-bold">{{ total_productos }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted">Total deudas</span>
+                    <span class="fw-bold text-warning">{{ total_debts }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Ventas totales</span>
+                    <span class="fw-bold text-success">${{ total_ventas|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0 pb-0">
+                <h6 class="mb-0">🚀 Acciones Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'sales:products' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i> Nuevo Producto
+                    </a>
+                    <a href="{% url 'sales:debts' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-file-invoice me-1"></i> Nueva Deuda
+                    </a>
+                    <a href="#" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-chart-bar me-1"></i> Ver Reportes
+                    </a>
+                </div>
             </div>
         </div>
     </div>

@@ -8,9 +8,10 @@ def dashboard(request):
         'total_ventas':  0,
         'total_productos': Products.objects.filter(
             active=True, stock__gt=0).count(),
-        'total_debts': Debts.objects.filter(
+        'pending_debts': Debts.objects.filter(
             status="pending"
-        ).count()
+        ).count(),
+        'total_debts': Debts.objects.filter().count()
     }
     return render(request, 'sales/dashboard.html', context)
 
