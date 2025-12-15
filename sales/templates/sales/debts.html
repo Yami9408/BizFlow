@@ -43,8 +43,22 @@
                         <span class="h5 text-primary">${{ debt.total_amount }}</span>
                         <span class="badge bg-{% if debt.status == 'paid' %}success{% elif debt.status == 'overdue' %}danger{% else %}warning{% endif %}">{{ debt.get_status_display }}</span>
                     </div>
-                    <div class="mb-2">
-                        <small class="text-muted">Creada: {{ debt.created_at|date:"d/m/Y" }}</small>
+                   <div class="mb-2 d-flex gap-3 flex-wrap">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-plus me-1"></i>
+                            Creada: {{ debt.created_at|date:"d/m/Y" }}
+                        </small>
+
+                        {% if debt.pay_date %}
+                                <i class="fas fa-calendar-check me-1"></i>
+                                Pagada: {{ debt.pay_date|date:"d/m/Y" }}
+                            </small>
+                        {% else %}
+                            <small class="text-warning">
+                                <i class="fas fa-clock me-1"></i>
+                                No pagada
+                            </small>
+                        {% endif %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">Pendiente: ${{ debt.pending_amount }}</small>
