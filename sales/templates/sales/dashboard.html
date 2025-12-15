@@ -162,10 +162,12 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'sales:products' %}" class="btn btn-outline-primary btn-sm">
+                    <a href="/admin/sales/products/add/" class="btn btn-outline-primary btn-sm"
+                    target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-plus me-1"></i> Nuevo Producto
                     </a>
-                    <a href="{% url 'sales:debts' %}" class="btn btn-outline-warning btn-sm">
+                    <a href="/admin/sales/debts/add/" class="btn btn-outline-warning btn-sm" 
+                    target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-file-invoice me-1"></i> Nueva Deuda
                     </a>
                     <a href="#" class="btn btn-outline-success btn-sm">
