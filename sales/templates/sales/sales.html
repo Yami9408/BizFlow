@@ -1,0 +1,188 @@
+{% extends 'sales/base.html' %}
+
+{% block title %}Sales - BizFlow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">💰 Ventas</h1>
+            <a href="/admin/sales/sales/add/" 
+               class="btn btn-success" 
+               target="_blank"
+               title="Crear nueva venta">
+                <i class="fas fa-plus me-2"></i>Nueva Venta
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">🔍 Buscar por notas</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Buscar en notas..." 
+                               value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">📅 Fecha desde</label>
+                        <input type="date" name="date_from" class="form-control" 
+                               value="{{ request.GET.date_from }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">📅 Fecha hasta</label>
+                        <input type="date" name="date_to" class="form-control" 
+                               value="{{ request.GET.date_to }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-grid w-100 gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Filtrar
+                            </button>
+                            {% if request.GET.search or request.GET.date_from or request.GET.date_to %}
+                                <a href="{% url 'sales:sales' %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-times me-1"></i>Limpiar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    {% for sale in sales %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ sale.note }}</h5>
+                        <a href="/admin/sales/sales/{{ sale.id }}/change/" 
+                           class="btn btn-outline-primary btn-sm" 
+                           title="Editar venta"
+                           target="_blank">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="h5 text-primary">${{ sale.total_amount }}</span>
+                        <span class="badge bg-{% if sale.status == 'paid' %}success{% elif sale.status == 'overdue' %}danger{% else %}warning{% endif %}">{{ sale.get_status_display }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-plus me-1"></i>
+                            Creada: {{ sale.created_at|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Trabajador: ${{ sale.employee_payment }}</small>
+                        <button class="btn btn-sm btn-outline-info d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#sale-{{ sale.id }}" aria-expanded="false">
+                            <i class="fas fa-box me-1"></i>
+                            {{ sale.product_items.count }} producto{{ sale.product_items.count|pluralize:"s" }}
+                            <i class="fas fa-chevron-down ms-1" style="font-size: 0.8em;"></i>
+                        </button>
+                    </div>
+                    <div class="collapse mt-3" id="sale-{{ sale.id }}">
+                        <div class="card card-body p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">📦 Productos ({{ sale.product_items.count }})</h6>
+                                <small class="text-muted">Total: ${{ sale.total_amount }}</small>
+                            </div>
+                            <div class="products-list" style="max-height: 300px; overflow-y: auto;">
+                                {% for item in sale.product_items.all %}
+                                    <div class="product-item d-flex justify-content-between align-items-center py-2 px-2 mb-1 bg-light rounded">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary me-2">{{ item.quantity }}x</span>
+                                                <div>
+                                                    <strong class="text-truncate d-block" style="max-width: 150px;">{{ item.product.name }}</strong>
+                                                    <small class="text-muted">${{ item.unit_price }} c/u</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong class="text-success">${{ item.subtotal }}</strong>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-center py-3">
+                                        <i class="fas fa-box-open fa-2x text-muted mb-2"></i>
+                                        <p class="text-muted mb-0">No hay productos asociados</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if sale.product_items.count > 5 %}
+                                <div class="text-center mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Lista con scroll para ver todos los productos
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No hay Ventas.
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+{% if page_obj.has_other_pages %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Paginación de productos">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                            Anterior
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}page={{ num }}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.date_from %}date_from={{ request.GET.date_from }}&{% endif %}{% if request.GET.date_to %}date_to={{ request.GET.date_to }}&{% endif %}page={{ page_obj.next_page_number }}">
+                            Siguiente
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <p class="text-center text-muted">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} 
+            ({{ page_obj.paginator.count }} venta{{ page_obj.paginator.count|pluralize:"s" }} total)
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

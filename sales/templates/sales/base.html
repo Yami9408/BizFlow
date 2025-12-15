@@ -138,6 +138,38 @@
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             transform: translateX(4px);
         }
+        
+        .products-list {
+            scrollbar-width: thin;
+            scrollbar-color: #dee2e6 #f8f9fa;
+        }
+        
+        .products-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .products-list::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+        
+        .products-list::-webkit-scrollbar-thumb {
+            background: #dee2e6;
+            border-radius: 3px;
+        }
+        
+        .products-list::-webkit-scrollbar-thumb:hover {
+            background: #adb5bd;
+        }
+        
+        .product-item {
+            transition: all 0.2s ease;
+        }
+        
+        .product-item:hover {
+            background: #e3f2fd !important;
+            transform: translateX(2px);
+        }
     </style>
 </head>
 <body class="d-flex flex-column">

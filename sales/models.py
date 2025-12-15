@@ -250,7 +250,8 @@ class Sales(models.Model):
         default=0.00,
         # validators=[MinValueValidator(Decimal('0.01'))],
         verbose_name=_("Monto total"),
-        blank=True, null=True
+        blank=True, null=True,
+        db_index=True
     )
     created_at = models.DateTimeField(
         auto_now_add=True,

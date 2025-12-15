@@ -1,11 +1,14 @@
+from django.db.models import Sum
 from django.shortcuts import render
-from .models import Products, Debts
+from .models import Products, Debts, Sales
 from .utils import get_paginator
 
 
 def dashboard(request):
     context = {
-        'total_ventas':  0,
+        'total_ventas':  Sales.objects.aggregate(
+            total_amount=Sum('total_amount')
+        )['total_amount'] or 0,
         'total_productos': Products.objects.filter(
             active=True, stock__gt=0).count(),
         'pending_debts': Debts.objects.filter(
@@ -59,3 +62,25 @@ def list_debts(request):
 
     context = get_paginator(request, debts, "debts", page_size=12)
     return render(request, 'sales/debts.html', context)
+
+
+def list_sales(request):
+    sales = Sales.objects.all().order_by('-created_at')
+
+    # Filtro por búsqueda en notas
+    search = request.GET.get('search')
+    if search:
+        sales = sales.filter(notes__icontains=search)
+
+    # Filtro por fecha desde
+    date_from = request.GET.get('date_from')
+    if date_from:
+        sales = sales.filter(created_at__date__gte=date_from)
+
+    # Filtro por fecha hasta
+    date_to = request.GET.get('date_to')
+    if date_to:
+        sales = sales.filter(created_at__date__lte=date_to)
+
+    context = get_paginator(request, sales, "sales", page_size=12)
+    return render(request, 'sales/sales.html', context)

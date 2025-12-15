@@ -14,19 +14,21 @@
 
 <div class="row mb-4 g-3">
     <div class="col-md-3">
-        <div class="card bg-gradient-primary text-white shadow-sm border-0">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h3 class="fw-bold">${{ total_ventas|floatformat:2 }}</h3>
-                        <p class="mb-0">💰 Total Sales</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-chart-line fa-2x"></i>
+        <a href="{% url 'sales:sales' %}" class="text-decoration-none">
+            <div class="card bg-gradient-primary text-white shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold">${{ total_ventas|floatformat:2 }}</h3>
+                            <p class="mb-0">💰 Total Sales</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
         <a href="{% url 'sales:products' %}?active_stock=true" class="text-decoration-none">
