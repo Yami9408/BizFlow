@@ -43,6 +43,9 @@
                         <span class="h5 text-primary">${{ debt.total_amount }}</span>
                         <span class="badge bg-{% if debt.status == 'paid' %}success{% elif debt.status == 'overdue' %}danger{% else %}warning{% endif %}">{{ debt.get_status_display }}</span>
                     </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Creada: {{ debt.created_at|date:"d/m/Y" }}</small>
+                    </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">Pendiente: ${{ debt.pending_amount }}</small>
                         <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#debt-{{ debt.id }}" aria-expanded="false">
