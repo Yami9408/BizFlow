@@ -44,7 +44,15 @@
         <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">{{ debt.client_name }}</h5>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ debt.client_name }}</h5>
+                        <a href="/admin/sales/debts/{{ debt.id }}/change/" 
+                           class="btn btn-outline-primary btn-sm" 
+                           title="Edit debt"
+                           target="_blank">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
                     <p class="card-text">{{ debt.description|truncatewords:15 }}</p>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="h5 text-primary">${{ debt.total_amount }}</span>
