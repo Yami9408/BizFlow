@@ -1,27 +1,45 @@
-from datetime import datetime, time
-from django.db.models import Sum
+from datetime import datetime, time, timezone, timedelta
+from django.db.models import Sum, Avg
 from django.shortcuts import render
 from .models import Products, Debts, Sales
 from .utils import get_paginator
 
 
 def dashboard(request):
+    date_from = datetime.now(timezone.utc) - timedelta(days=5)
+    resent_sales = Sales.objects.filter(
+        created_at__gte=date_from).order_by('-created_at')[:5]
+
+    # Métricas financieras separadas
+    total_ventas = Sales.objects.aggregate(
+        total=Sum('total_amount'))['total'] or 0
+    avg_sale = Sales.objects.aggregate(avg=Avg('total_amount'))['avg'] or 0
+    total_sales_count = Sales.objects.count()
+
+    # Margen promedio de productos
+    avg_margin = Products.objects.filter(active=True).aggregate(
+        avg=Avg('profit')
+    )['avg'] or 0
+
     context = {
-        'total_ventas':  Sales.objects.aggregate(
-            total_amount=Sum('total_amount')
-        )['total_amount'] or 0,
+        'total_ventas': total_ventas,
         'total_productos': Products.objects.filter(
             active=True, stock__gt=0).count(),
         'pending_debts': Debts.objects.filter(
             status="pending"
         ).count(),
-        'total_debts': Debts.objects.filter().count()
+        'total_debts': Debts.objects.filter().count(),
+        'ventas_recientes': bool(resent_sales),
+        'recente_sales': resent_sales,
+        'avg_sale': avg_sale,
+        'total_sales_count': total_sales_count,
+        'avg_margin': avg_margin
     }
     return render(request, 'sales/dashboard.html', context)
 
 
 def list_products(request):
-    products = Products.objects.filter(active=True)
+    products = Products.objects.filter(active=True).order_by('-created_at')
 
     # Filtro por búsqueda de nombre
     search = request.GET.get('search')
