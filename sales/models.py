@@ -100,6 +100,7 @@ class Products(models.Model):
     def save(self, *args, **kwargs):
         self.cost_price_mn = self.cost_price_usd * self.usd_rate
         self.profit = self.sale_price_mn - self.cost_price_mn
+        self.active = True if self.stock else False
         super().save(*args, **kwargs)
 
 

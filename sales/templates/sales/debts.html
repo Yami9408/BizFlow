@@ -77,7 +77,9 @@
                         {% endif %}
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Pendiente: ${{ debt.pending_amount }}</small>
+                        {% if not debt.pay_date %}
+                            <small class="text-muted">Pendiente: ${{ debt.pending_amount }}</small>
+                        {% endif %}
                         <button class="btn btn-sm btn-outline-info d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#debt-{{ debt.id }}" aria-expanded="false">
                             <i class="fas fa-box me-1"></i>
                             {{ debt.product_items.count }} producto{{ debt.product_items.count|pluralize:"s" }}
