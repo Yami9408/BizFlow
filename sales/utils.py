@@ -24,6 +24,12 @@ def update_stock(model, DebtItem):
                 model.product.save()
 
 
+def restaure_stock(model):
+    # Restaurar stock al eliminar el item
+    model.product.stock += model.quantity
+    model.product.save()
+
+
 def get_paginator(request, model, name, page_size=12):
     # Paginación
     paginator = Paginator(model, page_size)

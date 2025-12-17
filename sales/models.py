@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils.translation import gettext as _
-from .utils import update_stock
+from .utils import update_stock, restaure_stock
 
 STATUS_PENDING = 'pending'
 STATUS_PAID = 'paid'
@@ -253,8 +253,7 @@ class DebtItem(models.Model):
 
     def delete(self, *args, **kwargs):
         # Restaurar stock al eliminar el item
-        self.product.stock += self.quantity
-        self.product.save()
+        restaure_stock(self)
         super().delete(*args, **kwargs)
 
 
@@ -385,6 +384,5 @@ class SalesItem(models.Model):
 
     def delete(self, *args, **kwargs):
         # Restaurar stock al eliminar el item
-        self.product.stock += self.quantity
-        self.product.save()
+        restaure_stock(self)
         super().delete(*args, **kwargs)
