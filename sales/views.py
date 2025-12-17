@@ -1,5 +1,6 @@
 from datetime import datetime, time, timezone, timedelta
 from django.db.models import Sum, Avg
+from decimal import Decimal
 from django.shortcuts import render
 from .models import Products, Debts, Sales
 from .utils import get_paginator
@@ -17,9 +18,11 @@ def dashboard(request):
     total_sales_count = Sales.objects.count()
 
     # Margen promedio de productos
-    avg_margin = Products.objects.filter(active=True).aggregate(
-        avg=Avg('profit')
-    )['avg'] or 0
+    data = Products.objects.filter(active=True).only('profit', 'stock')
+    avg_margin = sum(
+        (product.profit * product.stock)
+        for product in data
+    ) * Decimal(0.75)
 
     context = {
         'total_ventas': total_ventas,
@@ -81,7 +84,7 @@ def list_debts(request):
             debts = debts.filter(paid_amount__gt=0, status="pending")
         else:
             debts = debts.filter(status=status)
-   
+
     context = get_paginator(request, debts, "debts", page_size=12)
     return render(request, 'sales/debts.html', context)
 

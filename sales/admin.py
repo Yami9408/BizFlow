@@ -10,7 +10,8 @@ from .models import (
 class ProductsAdmin(admin.ModelAdmin):
     list_display = ['name', 'description', 'cost_price_usd',
                     'cost_price_mn', 'sale_price_mn', 'usd_rate',
-                    'stock', 'active', 'created_at', 'image', 'sales_history']
+                    'stock', 'active', 'created_at', 'image',
+                    'sales_history', 'profit']
     list_filter = ['name', 'active', 'created_at']
     search_fields = ['name', 'description']
     list_editable = ['cost_price_usd',
@@ -18,10 +19,22 @@ class ProductsAdmin(admin.ModelAdmin):
                      'stock', 'active']
     readonly_fields = ["cost_price_mn", "profit"]
 
+    # Necesario para autocomplete
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(
+            request, queryset, search_term)
+        # Filtrar solo productos activos en el autocomplete
+        if 'autocomplete' in request.path:
+            queryset = queryset.filter(active=True)
+        return queryset, use_distinct
+
 
 class DebtItemInline(admin.TabularInline):
     model = DebtItem
     extra = 0
+    autocomplete_fields = ['product']
+    fields = ['product', 'quantity', 'unit_price', 'subtotal']
+    readonly_fields = ['subtotal']
 
 
 @admin.register(Debts)
@@ -74,6 +87,9 @@ class DebtsAdmin(admin.ModelAdmin):
 class SalesItemInline(admin.TabularInline):
     model = SalesItem
     extra = 0
+    autocomplete_fields = ['product']
+    fields = ['product', 'quantity', 'unit_price', 'subtotal']
+    readonly_fields = ['subtotal']
 
 
 @admin.register(Sales)
