@@ -33,10 +33,11 @@ class DebtsAdmin(admin.ModelAdmin):
     search_fields = ['client_name', 'description']
 
     actions = [
-        'page_debts'
+        'pay_debts',
+        'revert_payment_debts',
     ]
 
-    def page_debts(self, request, queryset):
+    def pay_debts(self, request, queryset):
         """Admin action to enter coordinators section"""
         get_total_to_paid = 0
         for debt in queryset:
@@ -49,7 +50,20 @@ class DebtsAdmin(admin.ModelAdmin):
             level=messages.SUCCESS
         )
 
-    page_debts.short_description = _('Pagar la Deuda')
+    pay_debts.short_description = _('Pagar la Deuda')
+
+    def revert_payment_debts(self, request, queryset):
+        """Admin action to enter coordinators section"""
+        for debt in queryset:
+            debt.revert_payment()
+
+        self.message_user(
+            request,
+            "Las deudas han sido revertidas",
+            level=messages.SUCCESS
+        )
+
+    revert_payment_debts.short_description = _('Revertir deuda pagada')
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -70,10 +84,9 @@ class SalesAdmin(admin.ModelAdmin):
                     'total_profit']
     list_filter = ['created_at']
     search_fields = ['notes']
-    
+
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.set_employee_total()
         form.instance.set_total_amount()
         form.instance.save()
-        

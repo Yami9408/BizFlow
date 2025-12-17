@@ -175,6 +175,20 @@ class Debts(models.Model):
             self.pay_date = datetime.now(timezone.utc)
         self.save()
 
+    def revert_payment(self, amount=None):
+        if amount is None:
+            amount = self.paid_amount
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a 0")
+        if amount > self.paid_amount:
+            raise ValueError("El monto no puede ser mayor al pagado")
+
+        self.paid_amount -= Decimal(str(amount))
+        if self.status == STATUS_PAID:
+            self.status = STATUS_PENDING
+            self.pay_date = None
+        self.save()
+
     def get_total_to_paid(self, percent='0.22'):
         total = sum(item.product.profit * item.quantity
                     for item in self.product_items.all())
