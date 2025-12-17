@@ -77,8 +77,11 @@ def list_debts(request):
         debts = debts.filter(client_name__icontains=search)
     status = request.GET.get('status')
     if status:
-        debts = debts.filter(status=status)
-
+        if status == 'halfp':
+            debts = debts.filter(paid_amount__gt=0, status="pending")
+        else:
+            debts = debts.filter(status=status)
+   
     context = get_paginator(request, debts, "debts", page_size=12)
     return render(request, 'sales/debts.html', context)
 
@@ -106,3 +109,7 @@ def list_sales(request):
 
     context = get_paginator(request, sales, "sales", page_size=12)
     return render(request, 'sales/sales.html', context)
+
+
+def reports_view(request):
+    return render(request, 'sales/reports.html', {})

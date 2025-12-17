@@ -30,6 +30,7 @@
                     <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pendientes</option>
                     <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Pagadas</option>
                     <option value="overdue" {% if request.GET.status == 'overdue' %}selected{% endif %}>Vencidas</option>
+                    <option value="halfp" {% if request.GET.status == 'halfPaid' %}selected{% endif %}>Media Pagada</option>
                 </select>
             </div>
             <div class="col-md-2">
