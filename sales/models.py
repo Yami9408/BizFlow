@@ -236,10 +236,22 @@ class DebtItem(models.Model):
         return f"{self.product.name} x{self.quantity}"
 
     def clean(self):
-        if self.product.stock < self.quantity:
+        # Obtener la cantidad original si estamos editando
+        original_quantity = 0
+        if self.pk:  # Si el objeto ya existe
+            try:
+                original_item = DebtItem.objects.get(pk=self.pk)
+                original_quantity = original_item.quantity
+            except DebtItem.DoesNotExist:
+                original_quantity = 0
+
+        # Calcular stock disponible considerando la cantidad original
+        available_stock = self.product.stock + original_quantity
+
+        if available_stock < self.quantity:
             raise ValidationError({
                 'quantity': ('Stock insuficiente. '
-                             f'Disponible: {self.product.stock}')
+                             f'Disponible: {available_stock}')
             })
 
     def save(self, *args, **kwargs):
@@ -367,10 +379,22 @@ class SalesItem(models.Model):
         return f"{self.product.name} x{self.quantity}"
 
     def clean(self):
-        if self.product.stock < self.quantity:
+        # Obtener la cantidad original si estamos editando
+        original_quantity = 0
+        if self.pk:  # Si el objeto ya existe
+            try:
+                original_item = SalesItem.objects.get(pk=self.pk)
+                original_quantity = original_item.quantity
+            except SalesItem.DoesNotExist:
+                original_quantity = 0
+
+        # Calcular stock disponible considerando la cantidad original
+        available_stock = self.product.stock + original_quantity
+
+        if available_stock < self.quantity:
             raise ValidationError({
                 'quantity': ('Stock insuficiente. '
-                             f'Disponible: {self.product.stock}')
+                             f'Disponible: {available_stock}')
             })
 
     def save(self, *args, **kwargs):
