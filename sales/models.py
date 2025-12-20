@@ -2,10 +2,9 @@ from datetime import datetime, timezone
 from django.db import models
 # from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
-from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils.translation import gettext as _
-from .utils import update_stock, restaure_stock
+from .utils import update_stock, restaure_stock, validate_stock
 
 STATUS_PENDING = 'pending'
 STATUS_PAID = 'paid'
@@ -236,23 +235,7 @@ class DebtItem(models.Model):
         return f"{self.product.name} x{self.quantity}"
 
     def clean(self):
-        # Obtener la cantidad original si estamos editando
-        original_quantity = 0
-        if self.pk:  # Si el objeto ya existe
-            try:
-                original_item = DebtItem.objects.get(pk=self.pk)
-                original_quantity = original_item.quantity
-            except DebtItem.DoesNotExist:
-                original_quantity = 0
-
-        # Calcular stock disponible considerando la cantidad original
-        available_stock = self.product.stock + original_quantity
-
-        if available_stock < self.quantity:
-            raise ValidationError({
-                'quantity': ('Stock insuficiente. '
-                             f'Disponible: {available_stock}')
-            })
+        return validate_stock(DebtItem, self)
 
     def save(self, *args, **kwargs):
         update_stock(self, DebtItem)
@@ -379,23 +362,7 @@ class SalesItem(models.Model):
         return f"{self.product.name} x{self.quantity}"
 
     def clean(self):
-        # Obtener la cantidad original si estamos editando
-        original_quantity = 0
-        if self.pk:  # Si el objeto ya existe
-            try:
-                original_item = SalesItem.objects.get(pk=self.pk)
-                original_quantity = original_item.quantity
-            except SalesItem.DoesNotExist:
-                original_quantity = 0
-
-        # Calcular stock disponible considerando la cantidad original
-        available_stock = self.product.stock + original_quantity
-
-        if available_stock < self.quantity:
-            raise ValidationError({
-                'quantity': ('Stock insuficiente. '
-                             f'Disponible: {available_stock}')
-            })
+        return validate_stock(SalesItem, self)
 
     def save(self, *args, **kwargs):
         update_stock(self, DebtItem)

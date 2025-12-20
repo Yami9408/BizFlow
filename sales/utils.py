@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 
 
 def update_stock(model, DebtItem):
@@ -40,3 +41,23 @@ def get_paginator(request, model, name, page_size=12):
         name: page_obj,
         'page_obj': page_obj,
     }
+
+
+def validate_stock(model, instance):
+    # Obtener la cantidad original si estamos editando
+    original_quantity = 0
+    if instance.pk:  # Si el objeto ya existe
+        try:
+            original_item = model.objects.get(pk=instance.pk)
+            original_quantity = original_item.quantity
+        except model.DoesNotExist:
+            original_quantity = 0
+
+    # Calcular stock disponible considerando la cantidad original
+    available_stock = instance.product.stock + original_quantity
+
+    if available_stock < instance.quantity:
+        raise ValidationError({
+            'quantity': ('Stock insuficiente. '
+                         f'Disponible: {available_stock}')
+        })
