@@ -88,7 +88,7 @@ class Products(models.Model):
     )
 
     travels = models.ForeignKey(
-        'Travel', related_name='travel',
+        'Travels', related_name='travel',
         verbose_name=_("Viaje"),
         null=True, blank=True,
         on_delete=models.SET_NULL
@@ -410,7 +410,7 @@ class SalesItem(models.Model):
         super().delete(*args, **kwargs)
 
 
-class Travel(models.Model):
+class Travels(models.Model):
     name = models.CharField(
         max_length=100,
         verbose_name=_("Nombre del viaje"), db_index=True)
