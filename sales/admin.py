@@ -88,7 +88,7 @@ class SalesItemInline(admin.TabularInline):
     model = SalesItem
     extra = 0
     autocomplete_fields = ['product']
-    fields = ['product', 'quantity', 'unit_price', 'subtotal']
+    fields = ['product', 'quantity', 'unit_price', 'subtotal', 'profit']
     readonly_fields = ['subtotal']
 
 
@@ -103,6 +103,7 @@ class SalesAdmin(admin.ModelAdmin):
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-        form.instance.set_employee_total()
+        if not form.instance.employee_payment:
+            form.instance.set_employee_total()
         form.instance.set_total_amount()
         form.instance.save()
