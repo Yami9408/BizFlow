@@ -83,6 +83,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">Trabajador: ${{ sale.employee_payment }}</small>
+                        <small class="text-muted">Tarj: ${{ sale.card_amount }}</small>
                         <button class="btn btn-sm btn-outline-info d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#sale-{{ sale.id }}" aria-expanded="false">
                             <i class="fas fa-box me-1"></i>
                             {{ sale.product_items.count }} producto{{ sale.product_items.count|pluralize:"s" }}
