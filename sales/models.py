@@ -16,6 +16,16 @@ STATUS_CHOICES = [
     (STATUS_OVERDUE, _('Vencida')),
 ]
 
+usd = 'USD'
+mn = 'MN'
+mxn = 'MXN'
+
+RAICE_TYPE_CHOICES = [
+    (usd, _('Dólares Americanos (USD)')),
+    (mn, _('Moneda Nacional (MN)')),
+    (mxn, _('Pesos Mexicanos (MXN)')),
+]
+
 
 class Products(models.Model):
     name = models.CharField(
@@ -75,6 +85,13 @@ class Products(models.Model):
         decimal_places=2,
         null=False, blank=True,
         verbose_name=_("Ganancia"),
+    )
+
+    travels = models.ForeignKey(
+        'Travel', related_name='travel',
+        verbose_name=_("Viaje"),
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
 
     class Meta:
@@ -309,13 +326,12 @@ class Sales(models.Model):
         return f"Venta del {date}"
 
     def set_total_profit(self):
-        total = sum(item.product.profit * item.quantity
-                    for item in self.product_items.all())
+        total = sum(item.profit for item in self.product_items.all())
         self.total_profit = total
         return total
 
     def set_total_amount(self):
-        total = sum(item.product.sale_price_mn * item.quantity
+        total = sum(item.unit_price * item.quantity
                     for item in self.product_items.all())
         self.total_amount = total
         return total
@@ -354,6 +370,18 @@ class SalesItem(models.Model):
         blank=True
     )
 
+    profit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=False, blank=True,
+        verbose_name=_("Real Ganancia"),
+    )
+    # use_to_profit = models.BooleanField(
+    #     default=True,
+    #     verbose_name=_("Suma para la Ganancia"),
+    #     db_index=True
+    # )
+
     class Meta:
         verbose_name = _("Sale Product")
         verbose_name_plural = _("Sales Products")
@@ -367,8 +395,11 @@ class SalesItem(models.Model):
     def save(self, *args, **kwargs):
         update_stock(self, DebtItem)
         # Recalcular precios
+        self.profit = self.product.profit * self.quantity
         if not self.unit_price:
             self.unit_price = self.product.sale_price_mn
+        else:
+            self.profit = (self.product.sale_price_mn - self.unit_price)*self.quantity  # noqa
         self.subtotal = self.unit_price * self.quantity
 
         super().save(*args, **kwargs)
@@ -377,3 +408,40 @@ class SalesItem(models.Model):
         # Restaurar stock al eliminar el item
         restaure_stock(self)
         super().delete(*args, **kwargs)
+
+
+class Travel(models.Model):
+    name = models.CharField(
+        max_length=100,
+        verbose_name=_("Nombre del viaje"), db_index=True)
+    description = models.TextField(blank=True, verbose_name=_("Descripción"))
+    date = models.DateField(
+        verbose_name=_("Fecha del viaje"),
+        null=False, blank=False
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Fecha de creación")
+    )
+    rate_type = models.CharField(
+        max_length=3,
+        choices=RAICE_TYPE_CHOICES,
+        default=usd,
+        verbose_name=_("Tipo de moneda"),
+        db_index=True
+    )
+    rate_change = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        help_text="Tipo de cambio MN → moneda local para este viaje",
+        null=False, blank=False,
+        default=500,
+        verbose_name=_("Tipo de cambio MN")
+    )
+
+    class Meta:
+        verbose_name = _('Travel')
+        verbose_name_plural = _('Travels')
+
+    def __str__(self):
+        return self.name
