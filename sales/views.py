@@ -1,5 +1,5 @@
 from datetime import datetime, time, timezone, timedelta
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, F
 from decimal import Decimal
 from django.shortcuts import render
 from .models import Products, Debts, Sales
@@ -24,19 +24,21 @@ def dashboard(request):
         for product in data
     ) * Decimal(0.75)
 
+    my_profit = sum(rsale.total_profit - rsale.employee_payment
+                    for rsale in resent_sales)
+
     context = {
         'total_ventas': total_ventas,
         'total_productos': Products.objects.filter(
             active=True, stock__gt=0).count(),
-        'pending_debts': Debts.objects.filter(
-            status="pending"
-        ).count(),
+        'pending_debts': Debts.objects.filter(status='pending').aggregate(
+            total=Sum(F('total_amount') - F('paid_amount')))['total'] or 0,
         'total_debts': Debts.objects.filter().count(),
         'ventas_recientes': bool(resent_sales),
         'recente_sales': resent_sales,
         'avg_sale': avg_sale,
         'total_sales_count': total_sales_count,
-        'avg_margin': avg_margin
+        'avg_margin': my_profit
     }
     return render(request, 'sales/dashboard.html', context)
 
@@ -66,7 +68,7 @@ def list_products(request):
 
     # Optimizar consulta
     products = products.only("id", "name", "image", "stock",
-                             "description", "sale_price_mn").order_by('name')
+                             "description", "sale_price_mn")
 
     # Paginación
     context = get_paginator(request, products, "products", page_size=12)

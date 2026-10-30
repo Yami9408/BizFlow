@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.utils.translation import gettext as _
 from .models import (
     Products, Debts, DebtItem,
-    Sales, SalesItem
+    Sales, SalesItem, Travels
 )
 
 
@@ -11,7 +11,7 @@ class ProductsAdmin(admin.ModelAdmin):
     list_display = ['name', 'description', 'cost_price_usd',
                     'cost_price_mn', 'sale_price_mn', 'usd_rate',
                     'stock', 'active', 'created_at', 'image',
-                    'sales_history', 'profit']
+                    'sales_history', 'profit', 'owner']
     list_filter = ['name', 'active', 'created_at']
     search_fields = ['name', 'description']
     list_editable = ['cost_price_usd',
@@ -107,3 +107,8 @@ class SalesAdmin(admin.ModelAdmin):
             form.instance.set_employee_total()
         form.instance.set_total_amount()
         form.instance.save()
+
+
+@admin.register(Travels)
+class TravelsAdmin(admin.ModelAdmin):
+    list_display = ["name", "date", "rate_type", "rate_change"]

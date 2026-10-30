@@ -94,6 +94,11 @@ class Products(models.Model):
         on_delete=models.SET_NULL
     )
 
+    owner = models.CharField(
+        max_length=100,
+        verbose_name=_("Dueño"), db_index=True,
+        default="Me")
+
     class Meta:
         verbose_name = _('Product')
         verbose_name_plural = _('Products')
@@ -331,8 +336,7 @@ class Sales(models.Model):
         return total
 
     def set_total_amount(self):
-        total = sum(item.unit_price * item.quantity
-                    for item in self.product_items.all())
+        total = sum(item.subtotal for item in self.product_items.all())
         self.total_amount = total
         return total
 
@@ -395,11 +399,12 @@ class SalesItem(models.Model):
     def save(self, *args, **kwargs):
         update_stock(self, DebtItem)
         # Recalcular precios
-        self.profit = self.product.profit * self.quantity
+        if not self.profit:
+            self.profit = self.product.profit * self.quantity
         if not self.unit_price:
             self.unit_price = self.product.sale_price_mn
-        else:
-            self.profit = (self.product.sale_price_mn - self.unit_price)*self.quantity  # noqa
+        # else:
+            # self.profit = (self.product.sale_price_mn - self.unit_price)*self.quantity  # noqa
         self.subtotal = self.unit_price * self.quantity
 
         super().save(*args, **kwargs)
